@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #ffffff;
+}
+
+.app {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+h1 {
+  color: #000000;
+  font-size: 48px;
+}
+
+p {
+  font-size: 20px;
+}
+
+button {
+  background: #8d8d8d;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
