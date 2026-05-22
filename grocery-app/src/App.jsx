@@ -147,7 +147,7 @@ function App() {
         <p><strong>Meal Type:</strong> {preferences.mealType}</p>
         <p><strong>Cooking Style:</strong> {preferences.cookingStyle}</p>
         <p><strong>Cuisine:</strong> {preferences.cuisine}</p>
-        <p><strong>Max Time:</strong> {preferences.maxTime} mins</p>
+        <p><strong>Maximum Time:</strong> {preferences.maxTime} mins</p>
       </div>
     </div>
 
