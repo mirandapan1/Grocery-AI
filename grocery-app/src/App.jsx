@@ -37,7 +37,6 @@ function App() {
   }
 
 
-
   function handlePreferenceChange(event) {
     const { name, value } = event.target;
     setPreferences({ ...preferences, [name]: value });
@@ -112,18 +111,49 @@ function App() {
             <button onClick={handleLogin}>Login</button>
           </>
         )}
+        {/* homepage */}
+        {page === "home" && (
+          <>
+            <h1>Welcome {user}</h1>
 
-        <h1>Fridge2Food</h1>
-        <p>Upload a fridge photo to start finding recipe ideas.</p>
+            <h2>Saved Recipes</h2>
+            {saved.length === 0 && <p>No saved recipes yet.</p>}
+            {saved.map((r, i) => (
+              <div key={i} className="recipeCard">
+                {r}
+              </div>
+            ))}
 
-        <input type="file" accept="image/*" onChange={handleUpload} />
-
-        {imagePreview && (
-          <div>
-            <h2>Your Fridge</h2>
-            <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
-          </div>
+            <button className="secondary" onClick={() => setPage("fridge")}>
+              Discover Recipes from Your Fridge
+            </button>
+          </>
         )}
+
+        {/* fridge upload */}
+        {page === "fridge" && (
+          <>
+            <h2>Upload a fridge photo to start finding recipe ideas.</h2>
+
+            <input type="file" accept="image/*" onChange={handleUpload} />
+
+            {imagePreview && (
+              <div>
+                <h2>Your Fridge</h2>
+                <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
+              </div>
+            )}
+            <input
+              placeholder="Manually add items (comma separated)"
+              onChange={(e) => setManualItems(e.target.value)}
+            />
+
+            <button onClick={analyzeFridge}>
+              {loading ? "Scanning..." : "Analyze Fridge"}
+            </button>
+          </>
+        )}
+
 
         <div className="preferences">
           <h2>Food Preferences</h2>
