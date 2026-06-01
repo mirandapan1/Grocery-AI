@@ -92,15 +92,15 @@ function App() {
     const { name, value } = event.target;
     setPreferences({ ...preferences, [name]: value });
   }
-  
+
   function generateRecipes() {
-  setRecipes([
-    "Chicken Alfredo",
-    "Veggie Stir Fry",
-    "Beef Tacos" // CHANGE TEMP RECIPES
-  ]);
-  setPage("recipes");
-}
+    setRecipes([
+      "Chicken Alfredo",
+      "Veggie Stir Fry",
+      "Beef Tacos" // CHANGE TEMP RECIPES
+    ]);
+    setPage("recipes");
+  }
 
 
 
@@ -145,7 +145,23 @@ function App() {
       setLoading(false);
     }
   }
+  function analyzeFridge() {
+    if (!imageFile && !manualItems) {
+      return;
+    }
 
+    setFridgeItems(manualItems.split(",").map(i => i.trim()));
+
+    setPage("prefs");
+  }
+  function saveRecipe(recipe) {
+    setSaved((prev) => {
+      if (prev.includes(recipe)) return prev; // prevents duplicates
+      const updated = [...prev, recipe];
+      localStorage.setItem("savedRecipes", JSON.stringify(updated));
+      return updated;
+    });
+  }
 
 
   return (
