@@ -1,10 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
   // nav login
   const [page, setPage] = useState("login");
+  const [authMode, setAuthMode] = useState("login");
   const [user, setUser] = useState("");
+
+  const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [signupData, setSignupData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
   // fridge
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
@@ -24,6 +37,7 @@ function App() {
   // recipes
   const [loading, setLoading] = useState(false);
   const [recipes, setRecipes] = useState([]);
+  const [recipeResult, setRecipeResult] = useState("");
 
   // saved recipes
   const [saved, setSaved] = useState(() => {
@@ -36,7 +50,22 @@ function App() {
 
   // login 
   function handleLogin() {
-    if (!user) return;
+    if (!loginData.email || !loginData.password) return;
+
+    setUser(loginData.email);
+    setPage("home");
+  }
+
+  function handleSignup() {
+    if (
+      !signupData.name ||
+      !signupData.email ||
+      !signupData.password
+    ) {
+      return;
+    }
+
+    setUser(signupData.name);
     setPage("home");
   }
 
@@ -49,13 +78,6 @@ function App() {
       setImagePreview(URL.createObjectURL(file));
     }
   }
-
-
-  function handlePreferenceChange(event) {
-    const { name, value } = event.target;
-    setPreferences({ ...preferences, [name]: value });
-  }
-
   // Converts the user's uploaded file into an AI-readable base64 string
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -65,6 +87,23 @@ function App() {
       fileReader.onerror = (error) => reject(error);
     });
   };
+
+  function handlePreferenceChange(event) {
+    const { name, value } = event.target;
+    setPreferences({ ...preferences, [name]: value });
+  }
+  
+  function generateRecipes() {
+  setRecipes([
+    "Chicken Alfredo",
+    "Veggie Stir Fry",
+    "Beef Tacos" // CHANGE TEMP RECIPES
+  ]);
+  setPage("recipes");
+}
+
+
+
 
   // Submits the payload over to your native backend port
   async function handleSubmit() {
@@ -118,11 +157,95 @@ function App() {
         {page === "login" && (
           <>
             <h1>Fridge2Food</h1>
-            <input
-              placeholder="Enter username"
-              onChange={(e) => setUser(e.target.value)}
-            />
-            <button onClick={handleLogin}>Login</button>
+            <div className="authTabs">
+              <button
+                className={authMode === "login" ? "activeTab" : ""}
+                onClick={() => setAuthMode("login")}
+              >
+                Sign In
+              </button>
+
+              <button
+                className={authMode === "signup" ? "activeTab" : ""}
+                onClick={() => setAuthMode("signup")}
+              >
+                Sign Up
+              </button>
+            </div>
+            {authMode === "login" ? (
+              <>
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={loginData.email}
+                  onChange={(e) =>
+                    setLoginData({
+                      ...loginData,
+                      email: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={loginData.password}
+                  onChange={(e) =>
+                    setLoginData({
+                      ...loginData,
+                      password: e.target.value,
+                    })
+                  }
+                />
+
+                <button onClick={handleLogin}>
+                  Sign In
+                </button>
+              </>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={signupData.name}
+                  onChange={(e) =>
+                    setSignupData({
+                      ...signupData,
+                      name: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={signupData.email}
+                  onChange={(e) =>
+                    setSignupData({
+                      ...signupData,
+                      email: e.target.value,
+                    })
+                  }
+                />
+
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={signupData.password}
+                  onChange={(e) =>
+                    setSignupData({
+                      ...signupData,
+                      password: e.target.value,
+                    })
+                  }
+                />
+
+                <button onClick={handleSignup}>
+                  Create Account
+                </button>
+              </>
+            )}
+
           </>
         )}
 
