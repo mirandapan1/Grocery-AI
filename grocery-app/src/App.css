@@ -1,12 +1,14 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #ffffff;
+  background: #FAEAE5;
 }
 
 .app {
   text-align: center;
-  padding: 80px 20px;
+  min-height: 100vh;
+  padding: 20px;
+  display: flex;
 }
 
 h1 {
@@ -19,13 +21,20 @@ p {
 }
 
 button {
-  background: #8d8d8d;
+  background: #8ACC98;
   color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 5px;
-  font-size: 16px;
-  cursor: pointer;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: bold;
+  margin-top: 10px;
+  width: 100%;
+}
+button.secondary {
+  background: #7EB5C4;
+}
+
+button.danger {
+  background: #D95C3A;
 }
 
 .preferences {
@@ -53,4 +62,26 @@ button {
   padding: 20px;
   background: #f1f1f1;
   border-radius: 12px;
+}
+
+.recipeCard {
+  background: #FAEAE5;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.upload-btn {
+  background-color: #438561;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.upload-btn:hover {
+  background-color: #bfc5cc;
 }

@@ -5,7 +5,7 @@ function App() {
   // nav login
   const [page, setPage] = useState("login");
   const [authMode, setAuthMode] = useState("login");
-  const [user, setUser] = useState("");
+  const [user, setUser] = useState(null);
 
   const [loginData, setLoginData] = useState({
     email: "",
@@ -40,19 +40,66 @@ function App() {
   const [recipeResult, setRecipeResult] = useState("");
 
   // saved recipes
-  const [saved, setSaved] = useState(() => {
-    return JSON.parse(localStorage.getItem("savedRecipes") || "[]");
-  });
-  useEffect(() => {
-    localStorage.setItem("savedRecipes", JSON.stringify(saved));
-  }, [saved]);
+  const [saved, setSaved] = useState([]);
 
+  useEffect(() => {
+    const currentUser = JSON.parse(
+      localStorage.getItem("currentUser")
+    );
+
+    if (currentUser) {
+      setUser(currentUser);
+      setPage("home");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const userRecipes = JSON.parse(
+      localStorage.getItem(`savedRecipes_${user.email}`) || "[]"
+    );
+
+    setSaved(userRecipes);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    localStorage.setItem(
+      `savedRecipes_${user.email}`,
+      JSON.stringify(saved)
+    );
+  }, [saved, user]);
 
   // login 
   function handleLogin() {
-    if (!loginData.email || !loginData.password) return;
+    if (!loginData.email || !loginData.password) {
+      alert("Please enter email and password");
+      return;
+    }
 
-    setUser(loginData.email);
+    const users = JSON.parse(
+      localStorage.getItem("users") || "[]"
+    );
+
+    const foundUser = users.find(
+      (u) =>
+        u.email === loginData.email &&
+        u.password === loginData.password
+    );
+
+    if (!foundUser) {
+      alert("Invalid email or password");
+      return;
+    }
+
+    localStorage.setItem(
+      "currentUser",
+      JSON.stringify(foundUser)
+    );
+
+    setUser(foundUser);
     setPage("home");
   }
 
@@ -62,11 +109,45 @@ function App() {
       !signupData.email ||
       !signupData.password
     ) {
+      alert("Please fill out all fields");
       return;
     }
 
-    setUser(signupData.name);
-    setPage("home");
+    const users = JSON.parse(
+      localStorage.getItem("users") || "[]"
+    );
+
+    const existingUser = users.find(
+      (u) => u.email === signupData.email
+    );
+
+    if (existingUser) {
+      alert("An account with this email already exists");
+      return;
+    }
+
+    const newUser = {
+      name: signupData.name,
+      email: signupData.email,
+      password: signupData.password,
+    };
+
+    users.push(newUser);
+
+    localStorage.setItem(
+      "users",
+      JSON.stringify(users)
+    );
+
+    alert("Account created successfully!");
+
+    setAuthMode("login");
+
+    setSignupData({
+      name: "",
+      email: "",
+      password: "",
+    });
   }
 
 
@@ -87,6 +168,8 @@ function App() {
       fileReader.onerror = (error) => reject(error);
     });
   };
+
+
 
   function handlePreferenceChange(event) {
     const { name, value } = event.target;
@@ -156,10 +239,9 @@ function App() {
   }
   function saveRecipe(recipe) {
     setSaved((prev) => {
-      if (prev.includes(recipe)) return prev; // prevents duplicates
-      const updated = [...prev, recipe];
-      localStorage.setItem("savedRecipes", JSON.stringify(updated));
-      return updated;
+      if (prev.includes(recipe)) return prev;
+
+      return [...prev, recipe];
     });
   }
 
@@ -269,7 +351,7 @@ function App() {
         {/* homepage */}
         {page === "home" && (
           <>
-            <h1>Welcome {user}</h1>
+            <h1>Welcome {user?.name}</h1>
 
             <h2>Saved Recipes</h2>
             {saved.length === 0 && <p>No saved recipes yet.</p>}
@@ -278,9 +360,26 @@ function App() {
                 {r}
               </div>
             ))}
-
-            <button className="secondary" onClick={() => setPage("fridge")}>
+            <button
+              className="secondary"
+              onClick={() => {
+                setImageFile(null);
+                setImagePreview(null);
+                setManualItems("");
+                setPage("fridge");
+              }}
+            >
               Discover Recipes from Your Fridge
+            </button>
+            <button
+              className="danger"
+              onClick={() => {
+                localStorage.removeItem("currentUser");
+                setUser(null);
+                setPage("login");
+              }}
+            >
+              Logout
             </button>
           </>
         )}
@@ -290,7 +389,7 @@ function App() {
           <>
             <h2>Upload a fridge photo to start finding recipe ideas.</h2>
 
-            <input type="file" accept="image/*" onChange={handleUpload} />
+            <input type="file" accept="image/*" onChange={handleUpload} className="upload-btn" />
 
             {imagePreview && (
               <div>
