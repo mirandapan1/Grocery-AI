@@ -39,6 +39,8 @@ function App() {
   const [recipes, setRecipes] = useState([]);
   const [recipeResult, setRecipeResult] = useState("");
 
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
+
   // saved recipes
   const [saved, setSaved] = useState([]);
 
@@ -237,6 +239,9 @@ function App() {
 
     setPage("prefs");
   }
+
+
+
   function saveRecipe(recipe) {
     setSaved((prev) => {
       if (prev.includes(recipe)) return prev;
@@ -253,304 +258,317 @@ function App() {
 
         {/* login */}
         {page === "login" && (
-          <>
-            <h1>Fridge2Food</h1>
-            <div className="authTabs">
-              <button
-                className={authMode === "login" ? "activeTab" : ""}
-                onClick={() => setAuthMode("login")}
-              >
-                Sign In
-              </button>
+          <div className="authContainer">
 
-              <button
-                className={authMode === "signup" ? "activeTab" : ""}
-                onClick={() => setAuthMode("signup")}
-              >
-                Sign Up
-              </button>
+            <div className="authLeft">
+              <h1 className ="brand">Fridge2Food</h1>
+              <p>Welcome to Fridge2Food! Sign in to discover recipes based on your ingredients.</p>
             </div>
-            {authMode === "login" ? (
-              <>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={loginData.email}
-                  onChange={(e) =>
-                    setLoginData({
-                      ...loginData,
-                      email: e.target.value,
-                    })
-                  }
-                />
+            <div className="authRight">
+              <div className="authCard">
+                <div className="authTabs">
+                  <button
+                    className={authMode === "login" ? "activeTab" : ""}
+                    onClick={() => setAuthMode("login")}
+                  >
+                    Sign In
+                  </button>
 
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={loginData.password}
-                  onChange={(e) =>
-                    setLoginData({
-                      ...loginData,
-                      password: e.target.value,
-                    })
-                  }
-                />
+                  <button
+                    className={authMode === "signup" ? "activeTab" : ""}
+                    onClick={() => setAuthMode("signup")}
+                  >
+                    Sign Up
+                  </button>
+                </div>
+                {authMode === "login" ? (
+                  <>
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={loginData.email}
+                      onChange={(e) =>
+                        setLoginData({
+                          ...loginData,
+                          email: e.target.value,
+                        })
+                      }
+                    />
 
-                <button onClick={handleLogin}>
-                  Sign In
-                </button>
-              </>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={signupData.name}
-                  onChange={(e) =>
-                    setSignupData({
-                      ...signupData,
-                      name: e.target.value,
-                    })
-                  }
-                />
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={loginData.password}
+                      onChange={(e) =>
+                        setLoginData({
+                          ...loginData,
+                          password: e.target.value,
+                        })
+                      }
+                    />
 
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={signupData.email}
-                  onChange={(e) =>
-                    setSignupData({
-                      ...signupData,
-                      email: e.target.value,
-                    })
-                  }
-                />
+                    <button onClick={handleLogin}>
+                      Sign In
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="Full Name"
+                      value={signupData.name}
+                      onChange={(e) =>
+                        setSignupData({
+                          ...signupData,
+                          name: e.target.value,
+                        })
+                      }
+                    />
 
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={signupData.password}
-                  onChange={(e) =>
-                    setSignupData({
-                      ...signupData,
-                      password: e.target.value,
-                    })
-                  }
-                />
+                    <input
+                      type="email"
+                      placeholder="Email"
+                      value={signupData.email}
+                      onChange={(e) =>
+                        setSignupData({
+                          ...signupData,
+                          email: e.target.value,
+                        })
+                      }
+                    />
 
-                <button onClick={handleSignup}>
-                  Create Account
-                </button>
-              </>
-            )}
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      value={signupData.password}
+                      onChange={(e) =>
+                        setSignupData({
+                          ...signupData,
+                          password: e.target.value,
+                        })
+                      }
+                    />
 
-          </>
-        )}
+                    <button onClick={handleSignup}>
+                      Create Account
+                    </button>
+                  </>
+                )}
 
-
-        {/* homepage */}
-        {page === "home" && (
-          <>
-            <h1>Welcome {user?.name}</h1>
-
-            <h2>Saved Recipes</h2>
-            {saved.length === 0 && <p>No saved recipes yet.</p>}
-            {saved.map((r, i) => (
-              <div key={i} className="recipeCard">
-                {r}
               </div>
-            ))}
-            <button
-              className="secondary"
-              onClick={() => {
-                setImageFile(null);
-                setImagePreview(null);
-                setManualItems("");
-                setPage("fridge");
-              }}
-            >
-              Discover Recipes from Your Fridge
-            </button>
-            <button
-              className="danger"
-              onClick={() => {
-                localStorage.removeItem("currentUser");
-                setUser(null);
-                setPage("login");
-              }}
-            >
-              Logout
-            </button>
-          </>
-        )}
-
-        {/* fridge upload */}
-        {page === "fridge" && (
-          <>
-            <h2>Upload a fridge photo to start finding recipe ideas.</h2>
-
-            <input type="file" accept="image/*" onChange={handleUpload} className="upload-btn" />
-
-            {imagePreview && (
-              <div>
-                <h2>Your Fridge</h2>
-                <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
-              </div>
-            )}
-            <input
-              placeholder="Manually add items (comma separated)"
-              onChange={(e) => setManualItems(e.target.value)}
-            />
-
-            <button onClick={analyzeFridge}>
-              {loading ? "Scanning..." : "Analyze Fridge"}
-            </button>
-          </>
-        )}
-        {/* Preferences */}
-        {page === "prefs" && (
-          <>
-            <div className="preferences">
-              <h2>Food Preferences</h2>
-
-              <label>
-                Diet
-                <select
-                  name="diet"
-                  value={preferences.diet}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="">Select</option>
-                  <option value="vegetarian">Vegetarian</option>
-                  <option value="vegan">Vegan</option>
-                  <option value="high-protein">High Protein</option>
-                  <option value="gluten-free">Gluten Free</option>
-                  <option value="any">Any</option>
-                </select>
-              </label>
-
-              <label>
-                Meal Type
-                <select
-                  name="mealType"
-                  value={preferences.mealType}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="">Select</option>
-                  <option value="breakfast">Breakfast</option>
-                  <option value="lunch">Lunch</option>
-                  <option value="dinner">Dinner</option>
-                  <option value="dessert">Dessert</option>
-                  <option value="any">Any</option>
-                </select>
-              </label>
-
-              <label>
-                Cooking Style
-                <select
-                  name="cookingStyle"
-                  value={preferences.cookingStyle}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="">Select</option>
-                  <option value="baked">Baked</option>
-                  <option value="fried">Fried</option>
-                  <option value="grilled">Grilled</option>
-                  <option value="air-fried">Air Fried</option>
-                  <option value="any">Any</option>
-                </select>
-              </label>
-
-              <label>
-                Cuisine
-                <select
-                  name="cuisine"
-                  value={preferences.cuisine}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="">Select</option>
-                  <option value="italian">Italian</option>
-                  <option value="mexican">Mexican</option>
-                  <option value="american">American</option>
-                  <option value="asian">Asian</option>
-                  <option value="any">Any</option>
-                </select>
-              </label>
-
-              <label>
-                Max Cooking Time
-                <select
-                  name="maxTime"
-                  value={preferences.maxTime}
-                  onChange={handlePreferenceChange}
-                >
-                  <option value="">Select</option>
-                  <option value="15">15 Minutes</option>
-                  <option value="30">30 Minutes</option>
-                  <option value="60">1 Hour</option>
-                  <option value="any">Any</option>
-                </select>
-              </label>
             </div>
+          </div>
+        )}
 
-            <div className="results">
-              <h2>Your Preferences</h2>
-              <p>
-                <strong>Diet:</strong> {preferences.diet || "None"}
-              </p>
-              <p>
-                <strong>Meal Type:</strong> {preferences.mealType || "None"}
-              </p>
-              <p>
-                <strong>Cooking Style:</strong> {preferences.cookingStyle || "None"}
-              </p>
-              <p>
-                <strong>Cuisine:</strong> {preferences.cuisine || "None"}
-              </p>
-              <p>
-                <strong>Max Time:</strong>{" "}
-                {preferences.maxTime
-                  ? preferences.maxTime === "any"
-                    ? "Any"
-                    : `${preferences.maxTime} mins`
-                  : "None"}
-              </p>
+
+              {/* homepage */}
+              {page === "home" && (
+                <>
+                  <h1>Welcome {user?.name}</h1>
+
+                  <h2>Saved Recipes</h2>
+                  {saved.length === 0 && <p>No saved recipes yet.</p>}
+                  {saved.map((r, i) => (
+                    <div key={i} className="recipeCard">
+                      {r}
+                    </div>
+                  ))}
+                  <button
+                    className="secondary"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                      setManualItems("");
+                      setPage("fridge");
+                    }}
+                  >
+                    Discover Recipes from Your Fridge
+                  </button>
+                  <button
+                    className="danger"
+                    onClick={() => {
+                      localStorage.removeItem("currentUser");
+                      setUser(null);
+                      setPage("login");
+                    }}
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+
+              {/* fridge upload */}
+              {page === "fridge" && (
+                <>
+                  <h2>Upload a fridge photo to start finding recipe ideas.</h2>
+
+                  <label className="uploadBtn">
+                    Take / Upload Photo
+                    <input type="file" hidden />
+                  </label>
+                  {imagePreview && (
+                    <div>
+                      <h2>Your Fridge</h2>
+                      <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
+                    </div>
+                  )}
+                  <input
+                    placeholder="Manually add items (comma separated)"
+                    onChange={(e) => setManualItems(e.target.value)}
+                  />
+
+                  <button onClick={analyzeFridge}>
+                    {loading ? "Scanning..." : "Analyze Fridge"}
+                  </button>
+                </>
+              )}
+              {/* Preferences */}
+              {page === "prefs" && (
+                <>
+                  <div className="preferences">
+                    <h2>Food Preferences</h2>
+
+                    <label>
+                      Diet
+                      <select
+                        name="diet"
+                        value={preferences.diet}
+                        onChange={handlePreferenceChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="vegetarian">Vegetarian</option>
+                        <option value="vegan">Vegan</option>
+                        <option value="high-protein">High Protein</option>
+                        <option value="gluten-free">Gluten Free</option>
+                        <option value="any">Any</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Meal Type
+                      <select
+                        name="mealType"
+                        value={preferences.mealType}
+                        onChange={handlePreferenceChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="breakfast">Breakfast</option>
+                        <option value="lunch">Lunch</option>
+                        <option value="dinner">Dinner</option>
+                        <option value="dessert">Dessert</option>
+                        <option value="any">Any</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Cooking Style
+                      <select
+                        name="cookingStyle"
+                        value={preferences.cookingStyle}
+                        onChange={handlePreferenceChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="baked">Baked</option>
+                        <option value="fried">Fried</option>
+                        <option value="grilled">Grilled</option>
+                        <option value="air-fried">Air Fried</option>
+                        <option value="any">Any</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Cuisine
+                      <select
+                        name="cuisine"
+                        value={preferences.cuisine}
+                        onChange={handlePreferenceChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="italian">Italian</option>
+                        <option value="mexican">Mexican</option>
+                        <option value="american">American</option>
+                        <option value="asian">Asian</option>
+                        <option value="any">Any</option>
+                      </select>
+                    </label>
+
+                    <label>
+                      Max Cooking Time
+                      <select
+                        name="maxTime"
+                        value={preferences.maxTime}
+                        onChange={handlePreferenceChange}
+                      >
+                        <option value="">Select</option>
+                        <option value="15">15 Minutes</option>
+                        <option value="30">30 Minutes</option>
+                        <option value="60">1 Hour</option>
+                        <option value="any">Any</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div className="results">
+                    <h2>Your Preferences</h2>
+                    <p>
+                      <strong>Diet:</strong> {preferences.diet || "None"}
+                    </p>
+                    <p>
+                      <strong>Meal Type:</strong> {preferences.mealType || "None"}
+                    </p>
+                    <p>
+                      <strong>Cooking Style:</strong> {preferences.cookingStyle || "None"}
+                    </p>
+                    <p>
+                      <strong>Cuisine:</strong> {preferences.cuisine || "None"}
+                    </p>
+                    <p>
+                      <strong>Max Time:</strong>{" "}
+                      {preferences.maxTime
+                        ? preferences.maxTime === "any"
+                          ? "Any"
+                          : `${preferences.maxTime} mins`
+                        : "None"}
+                    </p>
+                  </div>
+
+                  <button onClick={generateRecipes}>
+                    Generate Recipes
+                  </button>
+                </>
+              )}
+
+              {/* recipes */}
+              {page === "recipes" && (
+                <>
+                  <h2>Recipes</h2>
+
+                  {recipes.map((r, i) => (
+                    <div key={i} className="recipeCard">
+                      <div className="recipeCard" onClick={() => setSelectedRecipe(r)}>
+                        <div className="recipeImg"></div>
+                        <p>{r.title}</p>
+                      </div>
+                      <button onClick={() => saveRecipe(r)}>Save</button>
+                    </div>
+                  ))}
+
+                  <button onClick={generateRecipes}>
+                    Generate More
+                  </button>
+
+                  <button className="secondary" onClick={() => setPage("home")}>
+                    Back to Home
+                  </button>
+                </>
+              )}
+
+
+
+
             </div>
-
-            <button onClick={generateRecipes}>
-              Generate Recipes
-            </button>
-          </>
-        )}
-
-        {/* recipes */}
-        {page === "recipes" && (
-          <>
-            <h2>Recipes</h2>
-
-            {recipes.map((r, i) => (
-              <div key={i} className="recipeCard">
-                <p>{r}</p>
-                <button onClick={() => saveRecipe(r)}>Save</button>
-              </div>
-            ))}
-
-            <button onClick={generateRecipes}>
-              Generate More
-            </button>
-
-            <button className="secondary" onClick={() => setPage("home")}>
-              Back to Home
-            </button>
-          </>
-        )}
-
-
-
-
-      </div>
-    </div>
-  );
+          </div>
+        );
 
 }
-export default App;
+        export default App;
