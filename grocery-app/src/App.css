@@ -85,7 +85,8 @@ button:hover {
   margin-top: 10px;
 }
 
-.upload-btn {
+.uploadBtn {
+  align-items: center;
   background-color: #438561;
   color: white;
   padding: 10px 20px;

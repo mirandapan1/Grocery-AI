@@ -207,7 +207,7 @@ function App() {
       {
         title: "Chicken Alfredo",
         ingredients: ["Chicken", "Pasta"],
-        directions: "Cook pasta..." // CHANGE TEMP RECIPES
+        directions:  ["Chop veggies", "Stir fry", "Add sauce"] // CHANGE TEMP RECIPES
       },
       {
         title: "Veggie Stir Fry",
@@ -669,8 +669,11 @@ function analyzeFridge() {
                   </ul>
 
                   <h3>Directions</h3>
-                  <p>{selectedRecipe.directions}</p>
-
+                  <ol>
+  {selectedRecipe.directions.map((step, i) => (
+    <li key={i}>{step}</li>
+  ))}
+</ol>
                 </div>
               </div>
             )}
