@@ -195,28 +195,55 @@ function App() {
     const { name, value } = event.target;
     setPreferences({ ...preferences, [name]: value });
   }
+  //calls ai to recipes
+  async function generateRecipes() {
+  const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
 
-  function generateRecipes() {
-    const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
+  if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
+    alert("Please complete all preference fields before continuing.");
+    return;
+  }
 
-    if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
-      alert("Please complete all preference fields before continuing.");
+  setLoading(true);
+
+  try {
+    let base64Image = null;
+    if (imageFile) {
+      base64Image = await convertToBase64(imageFile);
+    }
+
+    const response = await fetch('/api/recipe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        image: base64Image,
+        ingredients: fridgeItems,
+        diet,
+        mealType,
+        cookingStyle,
+        cuisine,
+        maxTime
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert('Error: ' + (data.error || 'Failed to generate recipes'));
       return;
     }
-    setRecipes([
-      {
-        title: "Chicken Alfredo",
-        ingredients: ["Chicken", "Pasta"],
-        directions: "Cook pasta..." // CHANGE TEMP RECIPES
-      },
-      {
-        title: "Veggie Stir Fry",
-        ingredients: ["Broccoli", "Carrots", "Soy sauce"],
-        directions: ["Chop veggies", "Stir fry", "Add sauce"]
-      }
-    ]);
-    setPage("recipes");
+
+    const clean = data.recipe.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    setRecipes(parsed);
+    setPage('recipes');
+
+  } catch (err) {
+    alert('Failed to generate recipes: ' + err.message);
+  } finally {
+    setLoading(false);
   }
+}
 
 
 
