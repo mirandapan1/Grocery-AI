@@ -154,13 +154,29 @@ function App() {
 
 
   // Captures the single image file
-  function handleUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
+function handleUpload(event) {
+  const file = event.target.files[0];
+
+  if (file) {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+
+    setScanning(true);
+
+    setTimeout(() => {
+      setFridgeItems([
+        "Milk",
+        "Eggs",
+        "Chicken Breast",
+        "Cheese",
+        "Tomatoes"
+      ]);
+
+      setScanning(false);
+    }, 2000);
   }
+}
+
   // Converts the user's uploaded file into an AI-readable base64 string
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -179,12 +195,12 @@ function App() {
   }
 
   function generateRecipes() {
-      const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
+    const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
 
-  if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
-    alert("Please complete all preference fields before continuing.");
-    return;
-  }
+    if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
+      alert("Please complete all preference fields before continuing.");
+      return;
+    }
     setRecipes([
       {
         title: "Chicken Alfredo",
@@ -192,10 +208,10 @@ function App() {
         directions: "Cook pasta..." // CHANGE TEMP RECIPES
       },
       {
-      title: "Veggie Stir Fry",
-      ingredients: ["Broccoli", "Carrots", "Soy sauce"],
-      directions: ["Chop veggies", "Stir fry", "Add sauce"]
-    }
+        title: "Veggie Stir Fry",
+        ingredients: ["Broccoli", "Carrots", "Soy sauce"],
+        directions: ["Chop veggies", "Stir fry", "Add sauce"]
+      }
     ]);
     setPage("recipes");
   }
@@ -247,6 +263,11 @@ function App() {
     if (!imageFile && !manualItems) {
       return;
     }
+
+    const manualList = manualItems
+      ? manualItems.split(",").map(item => item.trim())
+      : [];
+
 
     setFridgeItems(manualItems.split(",").map(i => i.trim()));
 
@@ -441,13 +462,25 @@ function App() {
                 <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
               </div>
             )}
-            {imagePreview && (
-              <input
-                placeholder="Manually add items (comma separated)"
-                value={manualItems}
-                onChange={(e) => setManualItems(e.target.value)}
-              />
-            )}
+{fridgeItems.length > 0 && (
+  <>
+    <h3>Items Detected</h3>
+
+    <div className="itemList">
+      {fridgeItems.map((item, i) => (
+        <div key={i} className="itemChip">
+          {item}
+        </div>
+      ))}
+    </div>
+
+    <input
+      placeholder="Add additional items..."
+      value={manualItems}
+      onChange={(e) => setManualItems(e.target.value)}
+    />
+  </>
+)}
 
             <button onClick={analyzeFridge}>
               {loading ? "Scanning..." : "Analyze Fridge"}
@@ -456,7 +489,19 @@ function App() {
         )}
         {/* Preferences */}
         {page === "prefs" && (
+
           <>
+          <div className="detectedItems">
+  <h2>Items Found In Your Fridge</h2>
+
+  <div className="itemList">
+    {fridgeItems.map((item, index) => (
+      <div key={index} className="itemChip">
+        {item}
+      </div>
+    ))}
+  </div>
+</div>
             <div className="preferences">
               <h2>Food Preferences</h2>
 
@@ -579,7 +624,7 @@ function App() {
               <div key={i} className="recipeCard">
                 <div className="recipeCard" onClick={() => setSelectedRecipe(r)}>
                   <div className="recipeImg"></div>
-                  <p>{r}</p>
+                  <p>{r.title}</p>
                 </div>
                 <button onClick={() => saveRecipe(r)}>Save</button>
               </div>
