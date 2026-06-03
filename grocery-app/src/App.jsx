@@ -23,7 +23,9 @@ function App() {
   const [imageFile, setImageFile] = useState(null);
   const [manualItems, setManualItems] = useState("");
   const [fridgeItems, setFridgeItems] = useState([]);
+  const [newItem, setNewItem] = useState("");
 
+  const [scanning, setScanning] = useState(false);
 
 
   // preferences 
@@ -154,28 +156,28 @@ function App() {
 
 
   // Captures the single image file
-function handleUpload(event) {
-  const file = event.target.files[0];
+  function handleUpload(event) {
+    const file = event.target.files[0];
 
-  if (file) {
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
 
-    setScanning(true);
+      setScanning(true);
 
-    setTimeout(() => {
-      setFridgeItems([
-        "Milk",
-        "Eggs",
-        "Chicken Breast",
-        "Cheese",
-        "Tomatoes"
-      ]);
+      setTimeout(() => {
+        setFridgeItems([
+          "Milk",
+          "Eggs",
+          "Chicken Breast",
+          "Cheese",
+          "Tomatoes"
+        ]);
 
-      setScanning(false);
-    }, 2000);
+        setScanning(false);
+      }, 2000);
+    }
   }
-}
 
   // Converts the user's uploaded file into an AI-readable base64 string
   const convertToBase64 = (file) => {
@@ -259,20 +261,16 @@ function handleUpload(event) {
       setLoading(false);
     }
   }
-  function analyzeFridge() {
-    if (!imageFile && !manualItems) {
-      return;
-    }
 
-    const manualList = manualItems
-      ? manualItems.split(",").map(item => item.trim())
-      : [];
-
-
-    setFridgeItems(manualItems.split(",").map(i => i.trim()));
-
-    setPage("prefs");
+function analyzeFridge() {
+  if (fridgeItems.length === 0) {
+    alert("No ingredients found.");
+    return;
   }
+
+  setPage("prefs");
+}
+
 
 
 
@@ -282,6 +280,12 @@ function handleUpload(event) {
 
       return [...prev, recipe];
     });
+  }
+  function addManualItem() {
+    if (!newItem.trim()) return;
+
+    setFridgeItems((prev) => [...prev, newItem.trim()]);
+    setNewItem("");
   }
 
 
@@ -462,25 +466,40 @@ function handleUpload(event) {
                 <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
               </div>
             )}
-{fridgeItems.length > 0 && (
-  <>
-    <h3>Items Detected</h3>
+            {fridgeItems.length > 0 && (
+              <>
+                <h3>Items Detected</h3>
 
-    <div className="itemList">
-      {fridgeItems.map((item, i) => (
-        <div key={i} className="itemChip">
-          {item}
-        </div>
-      ))}
-    </div>
+                <div className="itemList">
+                  {fridgeItems.map((item, i) => (
+                    <div key={i} className="itemChip">
+                      {item}
+                    </div>
+                  ))}
+                </div>
 
-    <input
-      placeholder="Add additional items..."
-      value={manualItems}
-      onChange={(e) => setManualItems(e.target.value)}
-    />
-  </>
-)}
+                <div className="addItemContainer">
+                  <input
+                    placeholder="Add an item..."
+                    value={newItem}
+                    onChange={(e) => setNewItem(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        addManualItem();
+                      }
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    className="addBtn"
+                    onClick={addManualItem}
+                  >
+                    Add
+                  </button>
+                </div>
+              </>
+            )}
 
             <button onClick={analyzeFridge}>
               {loading ? "Scanning..." : "Analyze Fridge"}
@@ -491,17 +510,17 @@ function handleUpload(event) {
         {page === "prefs" && (
 
           <>
-          <div className="detectedItems">
-  <h2>Items Found In Your Fridge</h2>
+            <div className="detectedItems">
+              <h2>Items Found In Your Fridge</h2>
 
-  <div className="itemList">
-    {fridgeItems.map((item, index) => (
-      <div key={index} className="itemChip">
-        {item}
-      </div>
-    ))}
-  </div>
-</div>
+              <div className="itemList">
+                {fridgeItems.map((item, index) => (
+                  <div key={index} className="itemChip">
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="preferences">
               <h2>Food Preferences</h2>
 
