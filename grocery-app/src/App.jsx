@@ -179,10 +179,23 @@ function App() {
   }
 
   function generateRecipes() {
+      const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
+
+  if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
+    alert("Please complete all preference fields before continuing.");
+    return;
+  }
     setRecipes([
-      "Chicken Alfredo",
-      "Veggie Stir Fry",
-      "Beef Tacos" // CHANGE TEMP RECIPES
+      {
+        title: "Chicken Alfredo",
+        ingredients: ["Chicken", "Pasta"],
+        directions: "Cook pasta..." // CHANGE TEMP RECIPES
+      },
+      {
+      title: "Veggie Stir Fry",
+      ingredients: ["Broccoli", "Carrots", "Soy sauce"],
+      directions: ["Chop veggies", "Stir fry", "Add sauce"]
+    }
     ]);
     setPage("recipes");
   }
@@ -253,16 +266,27 @@ function App() {
 
   return (
 
+
     <div className="app">
       <div className="card">
+        {/* header */}
+        <div className="header">
+          <h1 className="logo" onClick={() => setPage("home")}>
+            Fridge2Food
+          </h1>
+
+        </div>
+
+
+
 
         {/* login */}
         {page === "login" && (
           <div className="authContainer">
 
             <div className="authLeft">
-              <h1 className ="brand">Fridge2Food</h1>
-              <p>Welcome to Fridge2Food! Sign in to discover recipes based on your ingredients.</p>
+              <h1 className="brand">Fridge2Food</h1>
+              <p>Welcome to Fridge2Food! Discover delicious recipes right from your fridge. No grocery run needed.</p>
             </div>
             <div className="authRight">
               <div className="authCard">
@@ -361,214 +385,246 @@ function App() {
         )}
 
 
-              {/* homepage */}
-              {page === "home" && (
-                <>
-                  <h1>Welcome {user?.name}</h1>
+        {/* homepage */}
+        {page === "home" && (
+          <>
+            <h1>Welcome {user?.name}</h1>
 
-                  <h2>Saved Recipes</h2>
-                  {saved.length === 0 && <p>No saved recipes yet.</p>}
-                  {saved.map((r, i) => (
-                    <div key={i} className="recipeCard">
-                      {r}
-                    </div>
-                  ))}
-                  <button
-                    className="secondary"
-                    onClick={() => {
-                      setImageFile(null);
-                      setImagePreview(null);
-                      setManualItems("");
-                      setPage("fridge");
-                    }}
-                  >
-                    Discover Recipes from Your Fridge
-                  </button>
-                  <button
-                    className="danger"
-                    onClick={() => {
-                      localStorage.removeItem("currentUser");
-                      setUser(null);
-                      setPage("login");
-                    }}
-                  >
-                    Logout
-                  </button>
-                </>
-              )}
+            <h2>Saved Recipes</h2>
+            {saved.length === 0 && <p>No saved recipes yet.</p>}
+            {saved.map((r, i) => (
+              <div key={i} className="recipeCard">
+                {r}
+              </div>
+            ))}
+            <button
+              className="secondary"
+              onClick={() => {
+                setImageFile(null);
+                setImagePreview(null);
+                setManualItems("");
+                setPage("fridge");
+              }}
+            >
+              Discover Recipes from Your Fridge
+            </button>
+            <button
+              className="danger"
+              onClick={() => {
+                localStorage.removeItem("currentUser");
+                setUser(null);
+                setPage("login");
+              }}
+            >
+              Logout
+            </button>
+          </>
+        )}
 
-              {/* fridge upload */}
-              {page === "fridge" && (
-                <>
-                  <h2>Upload a fridge photo to start finding recipe ideas.</h2>
+        {/* fridge upload */}
+        {page === "fridge" && (
+          <>
+            <h2>Upload a fridge photo to start finding recipe ideas.</h2>
 
-                  <label className="uploadBtn">
-                    Take / Upload Photo
-                    <input type="file" hidden />
-                  </label>
-                  {imagePreview && (
-                    <div>
-                      <h2>Your Fridge</h2>
-                      <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
-                    </div>
-                  )}
-                  <input
-                    placeholder="Manually add items (comma separated)"
-                    onChange={(e) => setManualItems(e.target.value)}
-                  />
+            <label className="uploadBtn">
+              Take / Upload Photo
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleUpload}
+              />
+            </label>
+            {imagePreview && (
+              <div>
+                <h2>Your Fridge</h2>
+                <img src={imagePreview} alt="Uploaded fridge" className="preview" style={{ maxWidth: '300px', borderRadius: '8px', marginTop: '10px' }} />
+              </div>
+            )}
+            {imagePreview && (
+              <input
+                placeholder="Manually add items (comma separated)"
+                value={manualItems}
+                onChange={(e) => setManualItems(e.target.value)}
+              />
+            )}
 
-                  <button onClick={analyzeFridge}>
-                    {loading ? "Scanning..." : "Analyze Fridge"}
-                  </button>
-                </>
-              )}
-              {/* Preferences */}
-              {page === "prefs" && (
-                <>
-                  <div className="preferences">
-                    <h2>Food Preferences</h2>
+            <button onClick={analyzeFridge}>
+              {loading ? "Scanning..." : "Analyze Fridge"}
+            </button>
+          </>
+        )}
+        {/* Preferences */}
+        {page === "prefs" && (
+          <>
+            <div className="preferences">
+              <h2>Food Preferences</h2>
 
-                    <label>
-                      Diet
-                      <select
-                        name="diet"
-                        value={preferences.diet}
-                        onChange={handlePreferenceChange}
-                      >
-                        <option value="">Select</option>
-                        <option value="vegetarian">Vegetarian</option>
-                        <option value="vegan">Vegan</option>
-                        <option value="high-protein">High Protein</option>
-                        <option value="gluten-free">Gluten Free</option>
-                        <option value="any">Any</option>
-                      </select>
-                    </label>
+              <label>
+                Diet
+                <select
+                  name="diet"
+                  value={preferences.diet}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="">Select</option>
+                  <option value="vegetarian">Vegetarian</option>
+                  <option value="vegan">Vegan</option>
+                  <option value="high-protein">High Protein</option>
+                  <option value="gluten-free">Gluten Free</option>
+                  <option value="any">Any</option>
+                </select>
+              </label>
 
-                    <label>
-                      Meal Type
-                      <select
-                        name="mealType"
-                        value={preferences.mealType}
-                        onChange={handlePreferenceChange}
-                      >
-                        <option value="">Select</option>
-                        <option value="breakfast">Breakfast</option>
-                        <option value="lunch">Lunch</option>
-                        <option value="dinner">Dinner</option>
-                        <option value="dessert">Dessert</option>
-                        <option value="any">Any</option>
-                      </select>
-                    </label>
+              <label>
+                Meal Type
+                <select
+                  name="mealType"
+                  value={preferences.mealType}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="">Select</option>
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="dessert">Dessert</option>
+                  <option value="any">Any</option>
+                </select>
+              </label>
 
-                    <label>
-                      Cooking Style
-                      <select
-                        name="cookingStyle"
-                        value={preferences.cookingStyle}
-                        onChange={handlePreferenceChange}
-                      >
-                        <option value="">Select</option>
-                        <option value="baked">Baked</option>
-                        <option value="fried">Fried</option>
-                        <option value="grilled">Grilled</option>
-                        <option value="air-fried">Air Fried</option>
-                        <option value="any">Any</option>
-                      </select>
-                    </label>
+              <label>
+                Cooking Style
+                <select
+                  name="cookingStyle"
+                  value={preferences.cookingStyle}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="">Select</option>
+                  <option value="baked">Baked</option>
+                  <option value="fried">Fried</option>
+                  <option value="grilled">Grilled</option>
+                  <option value="air-fried">Air Fried</option>
+                  <option value="any">Any</option>
+                </select>
+              </label>
 
-                    <label>
-                      Cuisine
-                      <select
-                        name="cuisine"
-                        value={preferences.cuisine}
-                        onChange={handlePreferenceChange}
-                      >
-                        <option value="">Select</option>
-                        <option value="italian">Italian</option>
-                        <option value="mexican">Mexican</option>
-                        <option value="american">American</option>
-                        <option value="asian">Asian</option>
-                        <option value="any">Any</option>
-                      </select>
-                    </label>
+              <label>
+                Cuisine
+                <select
+                  name="cuisine"
+                  value={preferences.cuisine}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="">Select</option>
+                  <option value="italian">Italian</option>
+                  <option value="mexican">Mexican</option>
+                  <option value="american">American</option>
+                  <option value="asian">Asian</option>
+                  <option value="any">Any</option>
+                </select>
+              </label>
 
-                    <label>
-                      Max Cooking Time
-                      <select
-                        name="maxTime"
-                        value={preferences.maxTime}
-                        onChange={handlePreferenceChange}
-                      >
-                        <option value="">Select</option>
-                        <option value="15">15 Minutes</option>
-                        <option value="30">30 Minutes</option>
-                        <option value="60">1 Hour</option>
-                        <option value="any">Any</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="results">
-                    <h2>Your Preferences</h2>
-                    <p>
-                      <strong>Diet:</strong> {preferences.diet || "None"}
-                    </p>
-                    <p>
-                      <strong>Meal Type:</strong> {preferences.mealType || "None"}
-                    </p>
-                    <p>
-                      <strong>Cooking Style:</strong> {preferences.cookingStyle || "None"}
-                    </p>
-                    <p>
-                      <strong>Cuisine:</strong> {preferences.cuisine || "None"}
-                    </p>
-                    <p>
-                      <strong>Max Time:</strong>{" "}
-                      {preferences.maxTime
-                        ? preferences.maxTime === "any"
-                          ? "Any"
-                          : `${preferences.maxTime} mins`
-                        : "None"}
-                    </p>
-                  </div>
-
-                  <button onClick={generateRecipes}>
-                    Generate Recipes
-                  </button>
-                </>
-              )}
-
-              {/* recipes */}
-              {page === "recipes" && (
-                <>
-                  <h2>Recipes</h2>
-
-                  {recipes.map((r, i) => (
-                    <div key={i} className="recipeCard">
-                      <div className="recipeCard" onClick={() => setSelectedRecipe(r)}>
-                        <div className="recipeImg"></div>
-                        <p>{r.title}</p>
-                      </div>
-                      <button onClick={() => saveRecipe(r)}>Save</button>
-                    </div>
-                  ))}
-
-                  <button onClick={generateRecipes}>
-                    Generate More
-                  </button>
-
-                  <button className="secondary" onClick={() => setPage("home")}>
-                    Back to Home
-                  </button>
-                </>
-              )}
-
-
-
-
+              <label>
+                Max Cooking Time
+                <select
+                  name="maxTime"
+                  value={preferences.maxTime}
+                  onChange={handlePreferenceChange}
+                >
+                  <option value="">Select</option>
+                  <option value="15">15 Minutes</option>
+                  <option value="30">30 Minutes</option>
+                  <option value="60">1 Hour</option>
+                  <option value="any">Any</option>
+                </select>
+              </label>
             </div>
-          </div>
-        );
+
+            <div className="results">
+              <h2>Your Preferences</h2>
+              <p>
+                <strong>Diet:</strong> {preferences.diet || "None"}
+              </p>
+              <p>
+                <strong>Meal Type:</strong> {preferences.mealType || "None"}
+              </p>
+              <p>
+                <strong>Cooking Style:</strong> {preferences.cookingStyle || "None"}
+              </p>
+              <p>
+                <strong>Cuisine:</strong> {preferences.cuisine || "None"}
+              </p>
+              <p>
+                <strong>Max Time:</strong>{" "}
+                {preferences.maxTime
+                  ? preferences.maxTime === "any"
+                    ? "Any"
+                    : `${preferences.maxTime} mins`
+                  : "None"}
+              </p>
+            </div>
+
+            <button onClick={generateRecipes}>
+              Generate Recipes
+            </button>
+          </>
+        )}
+
+        {/* recipes */}
+        {page === "recipes" && (
+          <>
+            <h2>Recipes</h2>
+
+            {recipes.map((r, i) => (
+              <div key={i} className="recipeCard">
+                <div className="recipeCard" onClick={() => setSelectedRecipe(r)}>
+                  <div className="recipeImg"></div>
+                  <p>{r}</p>
+                </div>
+                <button onClick={() => saveRecipe(r)}>Save</button>
+              </div>
+            ))}
+            {selectedRecipe && (
+              <div className="recipeModal">
+                <div className="recipeModalContent">
+
+                  <button
+                    className="closeBtn"
+                    onClick={() => setSelectedRecipe(null)}
+                  >
+                    X
+                  </button>
+
+                  <h2>{selectedRecipe.title}</h2>
+
+                  <h3>Ingredients</h3>
+                  <ul>
+                    {selectedRecipe.ingredients.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+
+                  <h3>Directions</h3>
+                  <p>{selectedRecipe.directions}</p>
+
+                </div>
+              </div>
+            )}
+
+
+
+            <button className="secondary" onClick={() => setPage("home")}>
+              Back to Home
+            </button>
+          </>
+        )}
+
+
+
+
+      </div>
+    </div>
+  );
 
 }
-        export default App;
+export default App;
