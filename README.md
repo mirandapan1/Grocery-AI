@@ -13,6 +13,8 @@ $ npm run dev
 
 The article, DietHub: Dietary habits analysis through understanding the content of recipes, by Matej Petković et. al is an AI workflow that describes the relationship between food and AI by highlighting the idea behind recipes. By learning the ways to 'tag' recipes and catorizing them, AI is able to come to a better understanding and thereby make smarter recipe recommendations. Similarly seen in our Fridge2Food project, there is the option of adding preferences to the recipes by adding specfic tags relating to 'Cuisine, Diet, and Cooking Style'. Although currently, this project only has simple categories as these; in the future, additions such as an integrated calorie system or vitamin/nutritional content may allow for even better recipes.
 
+Petković, M., Popovski, G., Seljak, B. K., Kocev, D., & Eftimov, T. (2021, January). DietHub: Dietary habits analysis through understanding the content of recipes, Trends in Food Science & Technology. Science Direct. https://www.sciencedirect.com/science/article/pii/S0924224420306403 
+
 #### Primary Contributions
 
 Ada: Focused Backend: controlled API and connected with Frontend
