@@ -232,6 +232,7 @@ function App() {
       alert('Error: ' + (data.error || 'Failed to generate recipes'));
       return;
     }
+<<<<<<< HEAD
 
     const clean = data.recipe.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
@@ -242,6 +243,21 @@ function App() {
     alert('Failed to generate recipes: ' + err.message);
   } finally {
     setLoading(false);
+=======
+    setRecipes([
+      {
+        title: "Chicken Alfredo",
+        ingredients: ["Chicken", "Pasta"],
+        directions:  ["Chop veggies", "Stir fry", "Add sauce"] // CHANGE TEMP RECIPES
+      },
+      {
+        title: "Veggie Stir Fry",
+        ingredients: ["Broccoli", "Carrots", "Soy sauce"],
+        directions: ["Chop veggies", "Stir fry", "Add sauce"]
+      }
+    ]);
+    setPage("recipes");
+>>>>>>> 39f8f1a1834ac9710ae57bc32fe3024acdeb6ddb
   }
 }
 
@@ -696,8 +712,11 @@ function analyzeFridge() {
                   </ul>
 
                   <h3>Directions</h3>
-                  <p>{selectedRecipe.directions}</p>
-
+                  <ol>
+  {selectedRecipe.directions.map((step, i) => (
+    <li key={i}>{step}</li>
+  ))}
+</ol>
                 </div>
               </div>
             )}
