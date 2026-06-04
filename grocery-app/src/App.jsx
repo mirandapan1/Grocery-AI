@@ -226,38 +226,42 @@ function App() {
       })
     });
 
-    const data = await response.json();
+    // Read raw text first to see exactly what came back
+const rawText = await response.text();
+console.log("Raw text from backend:", rawText);
+    //if empty
+if (!rawText || rawText.trim() === "") {
+  alert("Backend returned an empty response");
+  return;
+}
 
-    if (!response.ok) {
-      alert('Error: ' + (data.error || 'Failed to generate recipes'));
-      return;
-    }
-<<<<<<< HEAD
+let data;
+try {
+  data = JSON.parse(rawText);
+} catch (e) {
+  alert("Backend response was not valid JSON: " + rawText.slice(0, 200));
+  return;
+}
 
-    const clean = data.recipe.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-    setRecipes(parsed);
-    setPage('recipes');
+if (!response.ok) {
+  alert('Error: ' + (data.error || 'Failed to generate recipes'));
+  return;
+}
 
+if (!data.recipe) {
+  alert('No recipe data in response');
+  return;
+}
+
+const clean = data.recipe.replace(/```json|```/g, '').trim();
+console.log("Cleaned recipe string:", clean);
+const parsed = JSON.parse(clean);
+setRecipes(parsed);
+setPage('recipes');
   } catch (err) {
     alert('Failed to generate recipes: ' + err.message);
   } finally {
     setLoading(false);
-=======
-    setRecipes([
-      {
-        title: "Chicken Alfredo",
-        ingredients: ["Chicken", "Pasta"],
-        directions:  ["Chop veggies", "Stir fry", "Add sauce"] // CHANGE TEMP RECIPES
-      },
-      {
-        title: "Veggie Stir Fry",
-        ingredients: ["Broccoli", "Carrots", "Soy sauce"],
-        directions: ["Chop veggies", "Stir fry", "Add sauce"]
-      }
-    ]);
-    setPage("recipes");
->>>>>>> 39f8f1a1834ac9710ae57bc32fe3024acdeb6ddb
   }
 }
 

@@ -2,17 +2,32 @@ require('dotenv').config();
 const http = require('http');
 
 const apiKey = process.env.OPENROUTER_API_KEY;
+//checking api key
+console.log("API key loaded:", apiKey ? "YES" : "NO — check your .env file");
 const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-const modelName = 'meta-llama/llama-3.2-11b-vision-instruct:free';
-
-let conversationHistory = [
-  {
-    role: 'system',
-    content: 'You are Grocery-AI, an expert culinary assistant and shopping list organizer. Your job is to help users with budget-friendly meal planning, recipe development, grocery lists, and kitchen inventory management. Keep answers practical, structured, and helpful.'
-  }
+//using two different models for better use of text and vision models
+//const textModel = 'deepseek/deepseek-r1-0528:free'; //not working..
+const visionModel = 'google/gemma-3-4b-it:free';
+//trying multiple models
+const freeModels = [
+  'deepseek/deepseek-r1-0528:free',
+  'qwen/qwen3-8b:free',
+  'google/gemma-3-4b-it:free',
+  'mistralai/mistral-7b-instruct:free',
+  'microsoft/phi-4-reasoning:free'
 ];
 
+
+// let conversationHistory = [
+//   {
+//     role: 'system',
+//     content: 'You are Grocery-AI, an expert culinary assistant and shopping list organizer. Your job is to help users with budget-friendly meal planning, recipe development, grocery lists, and kitchen inventory management. Keep answers practical, structured, and helpful.'
+//   }
+// ];
+
 const server = http.createServer((req, res) => {
+  //console logs for debugging
+  console.log("Incoming request:", req.method, req.url);
   // Setup manual CORS options for React
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -33,6 +48,9 @@ const server = http.createServer((req, res) => {
       // Fridge scan: returns structured ingredient list
       req.on('data', chunk => chunks.push(chunk));
       req.on('end', async () => {
+        //checking if code is running bc of console logs not showing :(
+        console.log("Recipe handler reached");
+        console.log("URL hit:", req.url); 
         try {
           const { image } = JSON.parse(Buffer.concat(chunks).toString());
 
@@ -46,7 +64,7 @@ const server = http.createServer((req, res) => {
               ...(image ? [{ type: 'image_url', image_url: { url: image } }] : [])
             ]
           }];
-
+          //trial and error with multiple free models
           const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -55,12 +73,11 @@ const server = http.createServer((req, res) => {
               'HTTP-Referer': 'http://localhost',
               'X-Title': 'Grocery AI'
             },
-            body: JSON.stringify({ model: modelName, messages })
+            body: JSON.stringify({ model: visionModel, messages })
           });
 
           const data = await response.json();
           const raw = data.choices?.[0]?.message?.content ?? '[]';
-          // Strip markdown fences if model wraps it anyway
           const clean = raw.replace(/```json|```/g, '').trim();
           const items = JSON.parse(clean);
 
@@ -116,18 +133,9 @@ Respond with ONLY a raw JSON array, no markdown fences, no explanation. Use this
     "title": "Recipe Name",
     "time": "__ mins",
     "ingredients": ["ingredient 1", "ingredient 2", etc],
-    "directions": "Full step by step instructions as a single string in this format:" ["step 1", "step 2", etc]
+    "directions": ["Step 1 instruction", "Step 2 instruction", "Step 3 instruction"]
   }
 ]`;
-
-        let messageContent = [{ type: "text", text: promptText }];
-
-        if (image) {
-          messageContent.push({
-            type: "image_url",
-            image_url: { url: image }
-          });
-        }
 
         // Fresh message each time — no conversation history for recipe generation
         const messages = [
@@ -137,25 +145,42 @@ Respond with ONLY a raw JSON array, no markdown fences, no explanation. Use this
           },
           {
             role: 'user',
-            content: messageContent
+            content: [{ type: "text", text: promptText }]
           }
         ];
+        //testing all models until one works
+         let data = null;
+        let lastError = null;
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-            'HTTP-Referer': 'http://localhost',
-            'X-Title': 'Grocery AI'
-          },
-          body: JSON.stringify({ model: modelName, messages })
+        for (const model of freeModels) {
+          console.log("Trying model:", model);
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+              'HTTP-Referer': 'http://localhost',
+              'X-Title': 'Grocery AI'
+            },
+          body: JSON.stringify({ model, messages })
         });
 
-        const data = await response.json();
+        data = await response.json();
+        //logging every response to see why recipe ends up empty
+        console.log("Status:", response.status, "| Model:", model);
 
-       if (!data.choices?.[0]?.message?.content) {
-          throw new Error("No content returned from AI model");
+          if (data.choices?.[0]?.message?.content) {
+            console.log("Success with model:", model);
+            break;
+          }
+
+          lastError = data.error?.message || "No content";
+          console.log("Failed:", lastError, "— trying next model");
+          data = null;
+        }
+
+        if (!data) {
+          throw new Error("All models failed. Last error: " + lastError);
         }
 
         let raw = data.choices[0].message.content;
@@ -181,7 +206,7 @@ Respond with ONLY a raw JSON array, no markdown fences, no explanation. Use this
         }
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ recipe: clean }));   // Send as string (your frontend expects this)
+        res.end(JSON.stringify({ recipe: clean }));   // Send as string
 
       } catch (error) {
         console.error("Recipe handler error:", error.message);
