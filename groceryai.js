@@ -10,11 +10,11 @@ const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
 const visionModel = 'google/gemma-3-4b-it:free';
 //trying multiple models
 const freeModels = [
-  'deepseek/deepseek-r1-0528:free',
-  'qwen/qwen3-8b:free',
-  'google/gemma-3-4b-it:free',
-  'mistralai/mistral-7b-instruct:free',
-  'microsoft/phi-4-reasoning:free'
+  'openrouter/owl-alpha',
+  'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'poolside/laguna-xs.2:free',
+  'poolside/laguna-m.1:free',
+  'google/gemma-4-26b-a4b-it:free'
 ];
 
 
