@@ -5,25 +5,34 @@ const apiKey = process.env.OPENROUTER_API_KEY;
 //checking api key
 console.log("API key loaded:", apiKey ? "YES" : "NO — check your .env file");
 const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
-//using two different models for better use of text and vision models
-//const textModel = 'deepseek/deepseek-r1-0528:free'; //not working..
-const visionModel = 'google/gemma-3-4b-it:free';
+
 //trying multiple models
 const freeModels = [
-  'openrouter/owl-alpha',
+  'meta-llama/llama-3.3-70b-instruct:free',
+  'meta-llama/llama-3.2-3b-instruct:free',
+  'qwen/qwen3-coder:free',
+  'openai/gpt-oss-120b:free',
+  'openai/gpt-oss-20b:free',
+  'moonshotai/kimi-k2.6:free',
+  'google/gemma-4-31b-it:free',
+  'google/gemma-4-26b-a4b-it:free',
+  'nvidia/nemotron-3-super-120b-a12b:free',
+  'nvidia/nemotron-3-nano-30b-a3b:free',
+  'nvidia/nemotron-nano-12b-v2-vl:free',
+  'nvidia/nemotron-nano-9b-v2:free',
   'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+  'qwen/qwen3-next-80b-a3b-instruct:free',
+  'z-ai/glm-4.5-air:free',
+  'liquid/lfm-2.5-1.2b-thinking:free',
+  'liquid/lfm-2.5-1.2b-instruct:free',
+  'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+  'nousresearch/hermes-3-llama-3.1-405b:free',
   'poolside/laguna-xs.2:free',
   'poolside/laguna-m.1:free',
-  'google/gemma-4-26b-a4b-it:free'
+  'openrouter/owl-alpha',
+  'openrouter/free'
 ];
 
-
-// let conversationHistory = [
-//   {
-//     role: 'system',
-//     content: 'You are Grocery-AI, an expert culinary assistant and shopping list organizer. Your job is to help users with budget-friendly meal planning, recipe development, grocery lists, and kitchen inventory management. Keep answers practical, structured, and helpful.'
-//   }
-// ];
 
 const server = http.createServer((req, res) => {
   //console logs for debugging
@@ -42,17 +51,24 @@ const server = http.createServer((req, res) => {
   // Accept requests targeting both standard proxy and absolute routes
   //  To this:
   if (req.method === 'POST') {
+
     //responds to image from frontend and provides list of ingreidients
     if (req.url === '/api/scan') {
       let chunks = [];
       // Fridge scan: returns structured ingredient list
       req.on('data', chunk => chunks.push(chunk));
       req.on('end', async () => {
+
         //checking if code is running bc of console logs not showing :(
         console.log("Recipe handler reached");
         console.log("URL hit:", req.url); 
+        //starting image analysis
+        console.log("STARTING FRIDGE SCAN");
+
         try {
-          const { image } = JSON.parse(Buffer.concat(chunks).toString());
+          const body = JSON.parse(Buffer.concat(chunks).toString()); //parse into body first
+          const { image } = body;
+           console.log("Image received:", body.image ? "YES" : "NO");
 
           const messages = [{
             role: 'user',
@@ -64,19 +80,46 @@ const server = http.createServer((req, res) => {
               ...(image ? [{ type: 'image_url', image_url: { url: image } }] : [])
             ]
           }];
-          //trial and error with multiple free models
-          const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-              'HTTP-Referer': 'http://localhost',
-              'X-Title': 'Grocery AI'
-            },
-            body: JSON.stringify({ model: visionModel, messages })
-          });
 
-          const data = await response.json();
+
+          //trial and error with multiple free models
+          //basically 
+          let data = null;
+          let lastError = null;
+
+          for (const model of freeModels) {
+            console.log("Scan trying model:", model);
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'http://localhost',
+                'X-Title': 'Grocery AI'
+              },
+              body: JSON.stringify({ model, messages })
+            });
+
+            data = await response.json();
+            console.log("Scan status:", response.status, "| Model:", model);
+            console.log("Scan response:", JSON.stringify(data, null, 2));
+
+            if (data.choices?.[0]?.message?.content) {
+              console.log("Scan succeeded with:", model);
+              break;
+            }
+
+            lastError = data.error?.message || "No content";
+            console.log("Scan failed:", lastError, "— trying next model");
+            data = null;
+          }
+
+          if (!data) {
+            throw new Error("All scan models failed: " + lastError);
+          }
+
+          //recieving output and cleaning
+
           const raw = data.choices?.[0]?.message?.content ?? '[]';
           const clean = raw.replace(/```json|```/g, '').trim();
           const items = JSON.parse(clean);

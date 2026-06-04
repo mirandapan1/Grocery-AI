@@ -156,28 +156,37 @@ function App() {
 
 
   // Captures the single image file
-  function handleUpload(event) {
-    const file = event.target.files[0];
+  //no longer fixed ingredients, asks ai for input from image
+ async function handleUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
 
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+  setImageFile(file);
+  setImagePreview(URL.createObjectURL(file));
+  setScanning(true);
 
-      setScanning(true);
+  try {
+    const base64Image = await convertToBase64(file);
 
-      setTimeout(() => {
-        setFridgeItems([
-          "Milk",
-          "Eggs",
-          "Chicken Breast",
-          "Cheese",
-          "Tomatoes"
-        ]);
+    const response = await fetch('/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64Image })
+    });
 
-        setScanning(false);
-      }, 2000);
+    const data = await response.json();
+
+    if (response.ok && data.items) {
+      setFridgeItems(data.items);
+    } else {
+      alert('Failed to scan fridge: ' + (data.error || 'Unknown error'));
     }
+  } catch (err) {
+    alert('Scan error: ' + err.message);
+  } finally {
+    setScanning(false);
   }
+}
 
   // Converts the user's uploaded file into an AI-readable base64 string
   const convertToBase64 = (file) => {
@@ -311,14 +320,11 @@ setPage('recipes');
 
 function analyzeFridge() {
   if (fridgeItems.length === 0) {
-    alert("No ingredients found.");
+    alert("No ingredients found. Try uploading a photo first, or add items manually.");
     return;
   }
-
   setPage("prefs");
 }
-
-
 
 
   function saveRecipe(recipe) {
