@@ -63,7 +63,6 @@ function App() {
     const userRecipes = JSON.parse(
       localStorage.getItem(`savedRecipes_${user.email}`) || "[]"
     );
-
     setSaved(userRecipes);
   }, [user]);
 
@@ -157,36 +156,36 @@ function App() {
 
   // Captures the single image file
   //no longer fixed ingredients, asks ai for input from image
- async function handleUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
+  async function handleUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  setImageFile(file);
-  setImagePreview(URL.createObjectURL(file));
-  setScanning(true);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setScanning(true);
 
-  try {
-    const base64Image = await convertToBase64(file);
+    try {
+      const base64Image = await convertToBase64(file);
 
-    const response = await fetch('/api/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64Image })
-    });
+      const response = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Image })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (response.ok && data.items) {
-      setFridgeItems(data.items);
-    } else {
-      alert('Failed to scan fridge: ' + (data.error || 'Unknown error'));
+      if (response.ok && data.items) {
+        setFridgeItems(data.items);
+      } else {
+        alert('Failed to scan fridge: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Scan error: ' + err.message);
+    } finally {
+      setScanning(false);
     }
-  } catch (err) {
-    alert('Scan error: ' + err.message);
-  } finally {
-    setScanning(false);
   }
-}
 
   // Converts the user's uploaded file into an AI-readable base64 string
   const convertToBase64 = (file) => {
@@ -206,73 +205,73 @@ function App() {
   }
   //calls ai to recipes
   async function generateRecipes() {
-  const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
+    const { diet, mealType, cookingStyle, cuisine, maxTime } = preferences;
 
-  if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
-    alert("Please complete all preference fields before continuing.");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    let base64Image = null;
-    if (imageFile) {
-      base64Image = await convertToBase64(imageFile);
+    if (!diet || !mealType || !cookingStyle || !cuisine || !maxTime) {
+      alert("Please complete all preference fields before continuing.");
+      return;
     }
 
-    const response = await fetch('/api/recipe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image: base64Image,
-        ingredients: fridgeItems,
-        diet,
-        mealType,
-        cookingStyle,
-        cuisine,
-        maxTime
-      })
-    });
+    setLoading(true);
 
-    // Read raw text first to see exactly what came back
-const rawText = await response.text();
-console.log("Raw text from backend:", rawText);
-    //if empty
-if (!rawText || rawText.trim() === "") {
-  alert("Backend returned an empty response");
-  return;
-}
+    try {
+      let base64Image = null;
+      if (imageFile) {
+        base64Image = await convertToBase64(imageFile);
+      }
 
-let data;
-try {
-  data = JSON.parse(rawText);
-} catch (e) {
-  alert("Backend response was not valid JSON: " + rawText.slice(0, 200));
-  return;
-}
+      const response = await fetch('/api/recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64Image,
+          ingredients: fridgeItems,
+          diet,
+          mealType,
+          cookingStyle,
+          cuisine,
+          maxTime
+        })
+      });
 
-if (!response.ok) {
-  alert('Error: ' + (data.error || 'Failed to generate recipes'));
-  return;
-}
+      // Read raw text first to see exactly what came back
+      const rawText = await response.text();
+      console.log("Raw text from backend:", rawText);
+      //if empty
+      if (!rawText || rawText.trim() === "") {
+        alert("Backend returned an empty response");
+        return;
+      }
 
-if (!data.recipe) {
-  alert('No recipe data in response');
-  return;
-}
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        alert("Backend response was not valid JSON: " + rawText.slice(0, 200));
+        return;
+      }
 
-const clean = data.recipe.replace(/```json|```/g, '').trim();
-console.log("Cleaned recipe string:", clean);
-const parsed = JSON.parse(clean);
-setRecipes(parsed);
-setPage('recipes');
-  } catch (err) {
-    alert('Failed to generate recipes: ' + err.message);
-  } finally {
-    setLoading(false);
+      if (!response.ok) {
+        alert('Error: ' + (data.error || 'Failed to generate recipes'));
+        return;
+      }
+
+      if (!data.recipe) {
+        alert('No recipe data in response');
+        return;
+      }
+
+      const clean = data.recipe.replace(/```json|```/g, '').trim();
+      console.log("Cleaned recipe string:", clean);
+      const parsed = JSON.parse(clean);
+      setRecipes(parsed);
+      setPage('recipes');
+    } catch (err) {
+      alert('Failed to generate recipes: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
 
 
@@ -318,13 +317,13 @@ setPage('recipes');
     }
   }
 
-function analyzeFridge() {
-  if (fridgeItems.length === 0) {
-    alert("No ingredients found. Try uploading a photo first, or add items manually.");
-    return;
+  function analyzeFridge() {
+    if (fridgeItems.length === 0) {
+      alert("No ingredients found. Try uploading a photo first, or add items manually.");
+      return;
+    }
+    setPage("prefs");
   }
-  setPage("prefs");
-}
 
 
   function saveRecipe(recipe) {
@@ -340,7 +339,49 @@ function analyzeFridge() {
     setFridgeItems((prev) => [...prev, newItem.trim()]);
     setNewItem("");
   }
+  function renderRecipeModal() {
+    if (!selectedRecipe) return null;
 
+    return (
+      <div className="recipeModal">
+        <div className="recipeModalContent">
+          <button
+            className="closeBtn"
+            onClick={() => setSelectedRecipe(null)}
+          >
+            X
+          </button>
+
+          <h2>{selectedRecipe.title}</h2>
+
+          <h3>Ingredients</h3>
+          <ul>
+            {selectedRecipe.ingredients.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+
+          <h3>Directions</h3>
+          <ol>
+            {selectedRecipe.directions.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    );
+  }
+  function saveRecipe(recipe) {
+    setSaved((prev) => {
+      const exists = prev.some(
+        (r) => r.title === recipe.title
+      );
+
+      if (exists) return prev;
+
+      return [...prev, recipe];
+    });
+  }
 
   return (
 
@@ -471,8 +512,14 @@ function analyzeFridge() {
             <h2>Saved Recipes</h2>
             {saved.length === 0 && <p>No saved recipes yet.</p>}
             {saved.map((r, i) => (
-              <div key={i} className="recipeCard">
-                {r}
+              <div
+                key={i}
+                className="recipeCard"
+                onClick={() => setSelectedRecipe(r)}
+                style={{ cursor: "pointer" }}
+              >
+                <div className="recipeImg"></div>
+                <h3>{r.title}</h3>
               </div>
             ))}
             <button
@@ -553,10 +600,20 @@ function analyzeFridge() {
                 </div>
               </>
             )}
+            {scanning && (
+              <div className="loadingOverlay">
+                <div className="loadingBox">
+                  <h2>Analyzing fridge items...</h2>
+                  <p>Detecting ingredients from your image</p>
+                </div>
+              </div>
+            )}
 
-            <button onClick={analyzeFridge}>
-              {loading ? "Scanning..." : "Analyze Fridge"}
-            </button>
+            {fridgeItems.length > 0 && (
+              <button onClick={analyzeFridge}>
+                {loading ? "Scanning..." : "Analyze Fridge"}
+              </button>
+            )}
           </>
         )}
         {/* Preferences */}
@@ -684,7 +741,16 @@ function analyzeFridge() {
             <button onClick={generateRecipes}>
               Generate Recipes
             </button>
+
+            {loading && (
+              <div className="loadingOverlay">
+                <div className="loadingBox">
+                  <h2>Generating recipes...</h2>
+                </div>
+              </div>
+            )}
           </>
+
         )}
 
         {/* recipes */}
@@ -701,35 +767,6 @@ function analyzeFridge() {
                 <button onClick={() => saveRecipe(r)}>Save</button>
               </div>
             ))}
-            {selectedRecipe && (
-              <div className="recipeModal">
-                <div className="recipeModalContent">
-
-                  <button
-                    className="closeBtn"
-                    onClick={() => setSelectedRecipe(null)}
-                  >
-                    X
-                  </button>
-
-                  <h2>{selectedRecipe.title}</h2>
-
-                  <h3>Ingredients</h3>
-                  <ul>
-                    {selectedRecipe.ingredients.map((item, i) => (
-                      <li key={i}>{item}</li>
-                    ))}
-                  </ul>
-
-                  <h3>Directions</h3>
-                  <ol>
-  {selectedRecipe.directions.map((step, i) => (
-    <li key={i}>{step}</li>
-  ))}
-</ol>
-                </div>
-              </div>
-            )}
 
 
 
@@ -739,7 +776,7 @@ function analyzeFridge() {
           </>
         )}
 
-
+        {renderRecipeModal()}
 
 
       </div>
