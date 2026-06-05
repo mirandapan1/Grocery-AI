@@ -5,8 +5,14 @@ const apiKey = process.env.OPENROUTER_API_KEY;
 //checking api key
 console.log("API key loaded:", apiKey ? "YES" : "NO — check your .env file");
 const apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+//vision models 
+const visionModels = [
+  'nvidia/nemotron-nano-12b-v2-vl:free',   // vl = vision-language
+  'meta-llama/llama-3.2-11b-vision-instruct:free',
+  'meta-llama/llama-3.2-90b-vision-instruct:free'
+];
 
-//trying multiple models
+//trying multiple models (only works for text)
 const freeModels = [
   'meta-llama/llama-3.3-70b-instruct:free',
   'meta-llama/llama-3.2-3b-instruct:free',
@@ -87,7 +93,7 @@ const server = http.createServer((req, res) => {
           let data = null;
           let lastError = null;
 
-          for (const model of freeModels) {
+          for (const model of visionModels) {
             console.log("Scan trying model:", model);
             const response = await fetch(apiUrl, {
               method: 'POST',
